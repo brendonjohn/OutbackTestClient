@@ -24,7 +24,7 @@ KeyboardJS.on('right', function() {
 });
 
 var playerList = {};
-
+var playerID = 0;
 function Player(){
 	this.x = 10;
 	this.y = 10;
@@ -38,22 +38,38 @@ $(document).ready(function(){
 	
 	socket.on('connect', function(){
 		console.log("connected");
+	});
+	
+	socket.on('start game', function(userID, existingPlayers){
+		playerID = userID;
+		playerList[playerID] = new Player();
 		
-		playerList['me'] = new Player();
+		for (var player in existingPlayers){
+			playerList[player] = new Player();
+			playerList[player].x = existingPlayers.x;
+			playerList[player].y = existingPlayers.y;
+		}
 		
 		//submit starting location
 		socket.emit('userdetails', {
-		   x:playerList.me.x,
-		   y:playerList.me.y 
+		   x:playerList[playerID].x,
+		   y:playerList[playerID].y 
 	    });
-		
-		//Create Character
-	    DrawCharacter(playerList['me']);
+	    
+		//Create character once an id has been retrieved
+		DrawCharacter(playerList[playerID]);
 	});
 	
 	socket.on('user connect', function (player){
 		playerList[player.id] = new Player();
 		console.log("user connected, "+player.id);
+	});
+	
+	socket.on('gameupdate', function (players){
+		for (var player in players){
+			playerList[player].x = players[player].x;
+			playerList[player].y = players[player].y;
+		}
 	});
 	
 });
@@ -74,7 +90,7 @@ function DrawCharacter(character){
 }
 
 function MoveCharacter(direction){
-	var me = playerList['me'];
+	var me = playerList[playerID];
 	context.clearRect(
 		me.x,
     	me.y,
