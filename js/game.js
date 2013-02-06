@@ -6,7 +6,7 @@ var DIRECTIONS = {
 };
 
 var context;
-
+var socket;
 KeyboardJS.on('up', function() {
 	console.log('pressed: Up');
 	MoveCharacter(DIRECTIONS['up']);
@@ -37,11 +37,14 @@ var character = {
 $(document).ready(function(){
 	context = document.getElementById('arena').getContext('2d');
 	DrawCharacter();
-	var socket = io.connect('http://localhost:8813');
+	socket = io.connect('http://localhost:8813');
 	
 	socket.on('connect', function () {
 		console.log("connected");
-		socket.emit('userdetails', "These are the details");
+		socket.emit('userdetails', {
+		   x:character['x'],
+		   y:character['y'] 
+	    });
 		
 	});
 	
@@ -54,7 +57,12 @@ function DrawCharacter(){
     	character['width'],
     	character['height']
     );
-	
+    if (socket){    
+	    socket.emit('gameplay', {
+		   x:character['x'],
+		   y:character['y'] 
+	    });	
+    }
 }
 
 function MoveCharacter(direction){
