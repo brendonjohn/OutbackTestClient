@@ -37,6 +37,13 @@ var character = {
 $(document).ready(function(){
 	context = document.getElementById('arena').getContext('2d');
 	DrawCharacter();
+	var socket = io.connect('http://localhost:8813');
+	
+	socket.on('connect', function () {
+		console.log("connected");
+		socket.emit('userdetails', "These are the details");
+		
+	});
 	
 });
 
