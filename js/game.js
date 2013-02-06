@@ -8,72 +8,89 @@ var DIRECTIONS = {
 var context;
 var socket;
 KeyboardJS.on('up', function() {
-	console.log('pressed: Up');
 	MoveCharacter(DIRECTIONS['up']);
 });
 
 KeyboardJS.on('down', function() {
-	console.log('pressed: down');
 	MoveCharacter(DIRECTIONS['down']);
 });
 
 KeyboardJS.on('left', function() {
-	console.log('pressed: left');
 	MoveCharacter(DIRECTIONS['left']);
 });
 
 KeyboardJS.on('right', function() {
-	console.log('pressed: right');
 	MoveCharacter(DIRECTIONS['right']);
 });
 
-var character = {
-	x:10,
-	y:10,
-	height: 90,
-	width: 90
-};
+var playerList = {};
+
+function Player(){
+	this.x = 10;
+	this.y = 10;
+	this.height = 90;
+	this.width = 90;
+}
 
 $(document).ready(function(){
 	context = document.getElementById('arena').getContext('2d');
-	DrawCharacter();
 	socket = io.connect('http://localhost:8813');
 	
-	socket.on('connect', function () {
+	socket.on('connect', function(){
 		console.log("connected");
+		
+		playerList['me'] = new Player();
+		
+		//submit starting location
 		socket.emit('userdetails', {
-		   x:character['x'],
-		   y:character['y'] 
+		   x:playerList.me.x,
+		   y:playerList.me.y 
 	    });
 		
+		//Create Character
+	    DrawCharacter(playerList['me']);
+	});
+	
+	socket.on('user connect', function (player){
+		playerList[player.id] = new Player();
+		console.log("user connected, "+player.id);
 	});
 	
 });
 
-function DrawCharacter(){
+function DrawPlayers(){
+	for (var id in playerList){
+		DrawCharacter(playerList[id]);
+	}
+}
+
+function DrawCharacter(character){
     context.fillRect (
     	character['x'],
     	character['y'],
     	character['width'],
     	character['height']
     );
-    if (socket){    
-	    socket.emit('gameplay', {
-		   x:character['x'],
-		   y:character['y'] 
-	    });	
-    }
 }
 
 function MoveCharacter(direction){
+	var me = playerList['me'];
 	context.clearRect(
-		character['x'],
-    	character['y'],
-    	character['width'],
-    	character['height']
+		me.x,
+    	me.y,
+    	me.width,
+    	me.height
 	);
 	
-	character['x'] = character['x'] + direction[0];
-	character['y'] = character['y'] + direction[1];
-	DrawCharacter();
+	me.x = me.x + direction[0];
+	me.y = me.y + direction[1];
+	
+	DrawPlayers();
+	
+	if (socket){    
+	    socket.emit('gameplay', {
+		   x:me['x'],
+		   y:me['y'] 
+	    });	
+    }
 }
