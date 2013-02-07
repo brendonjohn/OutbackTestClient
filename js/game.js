@@ -67,9 +67,18 @@ $(document).ready(function(){
 	
 	socket.on('gameupdate', function (players){
 		for (var player in players){
+			context.clearRect(
+				playerList[player].x,
+		    	playerList[player].y,
+		    	playerList[player].width,
+		    	playerList[player].height
+			);
+			
 			playerList[player].x = players[player].x;
 			playerList[player].y = players[player].y;
 		}
+		
+		DrawPlayers();
 	});
 	
 });
